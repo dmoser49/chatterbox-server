@@ -11,7 +11,7 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-
+var messages = [];
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -23,6 +23,52 @@ var requestHandler = function(request, response) {
   // http://nodejs.org/documentation/api/
 
   // Do some basic logging.
+
+  var defaultCorsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "access-control-allow-headers": "content-type, accept",
+  "access-control-max-age": 10 // Seconds.
+};
+
+   var headers = defaultCorsHeaders;
+
+   var toSendBack = {};
+
+   var body = '';
+
+
+  if (request.method === 'GET') {
+      console.log("Serving request type " + request.method + " for url " + request.url);
+
+      request('http://127.0.0.1:3000/').on('data', function(data) {
+        body += data.toString();
+        console.log(data)
+      });
+
+  }
+
+  if (request.method === 'POST'){
+    console.log("Serving request type " + request.method + " for url " + request.url);
+
+      request.on('data', function(data) {
+        // response.on('end', function(data) {
+          console.log(JSON.parse(data));
+          messages.push(JSON.parse(data));
+          console.log(messages)
+          response.end(
+
+            data)
+            //
+        // })
+      })
+    }
+
+if (request.method === 'OPTIONS'){
+
+
+}
+
   //
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
@@ -33,7 +79,7 @@ var requestHandler = function(request, response) {
   var statusCode = 200;
 
   // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
+
 
   // Tell the client we are sending them plain text.
   //
@@ -52,9 +98,10 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end("Hello, World!");
+  // response.end(JSON.stringify(data));
 };
 
+exports.requestHandler = requestHandler;
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that
 // are on different domains, for instance, your chat client.
@@ -64,10 +111,5 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10 // Seconds.
-};
+
 
