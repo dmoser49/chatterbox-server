@@ -11,8 +11,10 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-var messages = [];
+var results = [];
 var requestHandler = function(request, response) {
+
+var obj = {"username":"dan", "message":"hello" }
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -23,7 +25,7 @@ var requestHandler = function(request, response) {
   // http://nodejs.org/documentation/api/
 
   // Do some basic logging.
-
+var statusCode = 200;
   var defaultCorsHeaders = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -35,39 +37,55 @@ var requestHandler = function(request, response) {
 
    var toSendBack = {};
 
-   var body = '';
 
 
-  if (request.method === 'GET') {
+  if (request.method === 'GET' && (request.url === "/classes/messages" || request.url === "/classes/room1")) {
       console.log("Serving request type " + request.method + " for url " + request.url);
 
-      request('http://127.0.0.1:3000/').on('data', function(data) {
-        body += data.toString();
-        console.log(data)
-      });
+      response.writeHead(200, headers);
+      toSendBack['results'] = results
+      response.end(JSON.stringify(toSendBack))
+      };
 
-  }
 
-  if (request.method === 'POST'){
+
+
+  if (request.method === 'POST' && (request.url === "/classes/messages" || request.url === "/classes/room1")) {
     console.log("Serving request type " + request.method + " for url " + request.url);
+    var body = '';
 
       request.on('data', function(data) {
-        // response.on('end', function(data) {
-          console.log(JSON.parse(data));
-          messages.push(JSON.parse(data));
-          console.log(messages)
-          response.end(
-
-            data)
-            //
-        // })
+          // console.log(JSON.parse(data));
+        body = JSON.parse(data);
+        console.log('body', body)
+        //JSON.parse(data);
+          // console.log('body', body)
+          // console.log(results);
       })
+      request.on('end', function(){
+        results.push(body);
+        console.log(results);
+      })
+      response.writeHead(201, headers);
+      response.end(JSON.stringify(results))
     }
 
-if (request.method === 'OPTIONS'){
+  if (request.method === 'OPTIONS'){
+    console.log("options")
+     response.writeHead(201, headers);
+     response.end();
+  }
 
+  if (request.url === "/"){
+    console.log("234")
+    response.writeHead(404, headers);
+    response.end();
+  }
 
-}
+  if (request.url !== "/" && request.url !== "/classes/messages" && request.url !== "/classes/room1"){
+    response.writeHead(404, headers);
+    response.end();
+  }
 
   //
   // Adding more logging to your server can be an easy way to get passive
@@ -76,8 +94,9 @@ if (request.method === 'OPTIONS'){
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   // The outgoing status.
-  var statusCode = 200;
-
+//   if () {
+//     statusCode = 200;
+// }
   // See the note below about CORS headers.
 
 
@@ -89,7 +108,6 @@ if (request.method === 'OPTIONS'){
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
